@@ -5,11 +5,12 @@
 #include <string>
 #include <cctype>
 #include <array>
+#include <vector>
 
 using namespace std;
 // Array of digit strings in lowercase
 
-const array<string> colors = {"red", "green", "blue"};
+const array<string, 3> colors = {"red", "green", "blue"};
 
 vector<string> splitString(const string& str, char delimiter) {
     vector<string> result;
@@ -26,19 +27,29 @@ vector<string> splitString(const string& str, char delimiter) {
     return result;
 }
 
-int findStringIndex(const std::vector<std::string>& vec, const std::string& target) {
-    for (size_t i = 0; i < vec.size(); ++i) {
-        if (vec[i] == target) {
-            return static_cast<int>(i);  // Return the index of the found string
+int findStringIndex(const string& target) {
+    for (size_t i = 0; i < colors.size(); ++i) {
+        if (colors[i] == target) {
+            return i;  // Return the index of the found string
         }
     }
     return -1;  // Return -1 if the string is not found
 }
 
-bool fitsInArray( vector<stirng> input, vector<int> margin){
-	for(string ball : input){
-	     string key = 
-	}
+bool fitsInArray(const vector<string> input,const vector<int> margin){
+	vector<int> balls = {0, 0 ,0};
+	
+	for(int index=0;index<input.size();index++){
+	     const vector<string> balls = splitString(input[index],',');
+	     for(int ballIndex = 0; ballIndex < balls.size(); ballIndex++){
+		int number = stoi(splitString(ball[ballIndex],' ')[1]);
+		int colorIndex = findStringIndex(splitString(ball,' ')[2]);
+		if(margin[colorIndex] < number)
+			return false;
+	     }
+     
+    	}
+	return true;
 }
 
 int main() {
@@ -46,12 +57,14 @@ int main() {
     int result = 0;
     ifstream file("input.txt");
     vector<int> margin = { 12, 13 ,14};
-
+    int sum = 0;
     if(file.is_open()){
     	while(getline(file,line)){
 		vector<string> input = splitString( splitString(line,':')[1], ';');
-		
-		cout<<line<<"\n";
+	        if(fitsInArray(input, margin)){
+ 			sum += stoi(splitString(splitString(line,':')[0],' ')[1]);
+		}
+		cout<<line<<" SUM: "<< sum <<"\n";
 	}
     }
     cout<<result;
