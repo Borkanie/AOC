@@ -3,23 +3,57 @@
 #include <vector>
 #include <string>
 #include <ctype.h>
+#include <utility>
 
 std::vector<std::vector<char>> matrix;
 
-bool checkForSign(int line, int column){
-    for(int i=-1;i<=1;i++){
-        if(line+i <0 || line+i >= matrix.size())
+int getNumber(std::pair<int,int> position){
+    int line = position.first;
+    int column = position.second;
+    int result = 0;
+
+    std::vector<char> digits;
+    // Accumulate digits before the asterisk
+    int place = 1;
+    for(int j = column; j >= 0 && isdigit(matrix[line][j]); j--){
+        digits.insert(digits.begin(),matrix[line][j]);
+    }
+
+    // Accumulate digits after the asterisk
+    for(int j = column + 1; j < matrix[line].size() && isdigit(matrix[line][j]); j++){
+        digits.push_back(matrix[line][j]);
+    }
+
+    for(char c : digits){
+        result = result*10 + (c-'0');
+    }
+
+    return result;
+}
+
+
+std::vector<std::pair<int,int>> checkForNumbers(int line, int column){
+    std::vector<std::pair<int,int>> numbers;
+    for(int i = -1; i <= 1; i++){
+        if(line + i < 0 || line + i >= matrix.size())
             continue;
-        for(int j=-1;j<=1;j++){
-            if(column+j <0 || column+j >= matrix[i].size())
+        for(int j = -1; j <= 1; j++){
+            if(column + j < 0 || column + j >= matrix[line + i].size())
                 continue;
-            if(!isdigit(matrix[line+i][column+j]) && matrix[line+i][column+j]!='.'){
-                return true;
+            if(i == 0 && j == 0)  // Skip the gear position itself
+                continue;
+            if(isdigit(matrix[line + i][column + j])){
+                numbers.push_back({line + i, column + j});
+                // Skip other digits of the same number
+                while(column + j + 1 < matrix[line + i].size() && isdigit(matrix[line + i][column + j + 1])){
+                    j++;
+                }
             }
         }
     }
-    return false;
+    return numbers;
 }
+
 
 int main() {
     std::ifstream file("input.txt");
@@ -40,35 +74,34 @@ int main() {
         return 1;
     }
 
-    // Display the matrix
-    for (const auto& row : matrix) {
-        for (char c : row) {
-            std::cout << c;
-        }
-        std::cout << std::endl;
-    }
-
-    int result =0;
+    long result =0;
     for (int i=0;i<matrix.size();i++) {
-        int number = 0;
-        bool hasSign = 0;
         for (int j=0;j<matrix[i].size();j++) {
-            if(isdigit(matrix[i][j])){
-                number = number * 10 + (matrix[i][j] - '0');
-                if(!hasSign){
-                    hasSign = checkForSign(i,j);
-                }
-            }
-            else{
-                if(number>0){
-                    if(hasSign){
-                        result += number;
-                        std::cout<<number <<std::endl;
+            // search fo star
+            if(matrix[i][j] == '*'){
+                auto numbers = checkForNumbers(i,j);
+                // a gear needs exactly two numbers nearby
+                std::vector<std::pair<int,int>> lineNumberPairs;
+                for(auto n : numbers){
+                    auto n1 = getNumber(n);
+                    bool copycat = false;
+                    //std::cout<<numbers.size()<<std::endl;
+                    for(auto pair : lineNumberPairs){
+                        if(pair.first == n.first && n1 == pair.second){
+                            copycat = true;
+                            break;
+                        }
                     }
-                    number = 0;
-                    hasSign = false;
+                    if(!copycat)
+                        lineNumberPairs.push_back({n.first,n1});
+                    // do not get the same number twice;
+                    
+                }
+                if(lineNumberPairs.size()==2){
+                    result+=lineNumberPairs[0].second*lineNumberPairs[1].second;
                 }
             }
+            
         }
         
     }
