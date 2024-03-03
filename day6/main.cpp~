@@ -1,0 +1,34 @@
+#include <iostream>
+#include <cmath>
+using namespace std;
+
+int travel(int total_time, int hold){
+	if(hold >= total_time)
+		return 0;
+	int travel_time = total_time - hold;
+	int speed = hold;
+	return speed*travel_time;
+
+}
+// dist = vit * t_ramas
+// vit = total - t_ramas
+// dist = t_ramas* ( total - t_ramas)
+// dist = -t_ramas^2 + total*t_ramas
+// - t_ramas^2 +total*t_ramas - dist = 0
+// we look for max for a second order function with negaative coefficient tot he second order component soo max = Df/Dt = 0
+// -2*t_ramas + total = 0 => t_ramas = total/2 
+// Sooo for every run maximum distance is achieved when hold time is total/2
+int how_many_times_better (int total,int actual){
+	int result = 0;
+	for(int i=0;i<=total;i++){
+		if(travel(total,i) > actual)
+			result ++;
+	}
+	return result;
+}
+
+int main(){	
+	std::cout << how_many_times_better(7,9) << std::endl;
+	std::cout << how_many_times_better(15,40) << std::endl;
+	std::cout << how_many_times_better(30,200) << std::endl;
+}
