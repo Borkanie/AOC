@@ -19,7 +19,16 @@ size_t index_of(Range const& range, T const& c) {
 }
 
 using namespace std;
-
+const char cards[] = {'A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4','3','2'};
+const int number_of_possible_cards = sizeof(cards)/sizeof(char);
+int index_of(char c){
+	for(int i=0;i<number_of_possible_cards;i++){
+		if(cards[i]==c){
+			return i;
+		}
+	}
+	return 25;
+}
 template <typename arr>
 void printArr(arr const range,int size) {
     for(int i=0;i<size;i++){
@@ -39,15 +48,17 @@ struct Hand{
 	
 	// Overload < operator
     bool operator>(const Hand& other) const {
-		if(this->cards.size() != other.cards.size())
-			return false;
 		if(this->hand_value > other.hand_value)
 			return true;
-		if(other.hand_value > this->hand_value)
-			return false;
-		for(int i=0;i<this->cards.size();i++){
-			if(index_of(cards,this->cards[i])>index_of(cards,other.cards[i])){
-				return true;
+		if(other.hand_value == this->hand_value)
+		{
+			for(int i=0;i<this->cards.size();i++){
+				if(index_of(this->cards[i])<index_of(other.cards[i])){
+					return true;					
+				}
+				if(index_of(this->cards[i])>index_of(other.cards[i])){
+					return false;					
+				}
 			}
 		}
 		return false;
@@ -55,28 +66,28 @@ struct Hand{
 
 	// Overload < operator
     bool operator<(const Hand& other) const {
-		if(this->cards.size() != other.cards.size())
-			return true;
 		if(this->hand_value < other.hand_value)
 			return true;
-		if(other.hand_value < this->hand_value)
-			return false;
-		for(int i=0;i<this->cards.size();i++){
-			if(index_of(cards,this->cards[i])<index_of(cards,other.cards[i])){
-				return true;
+		if(other.hand_value == this->hand_value)
+		{
+			for(int i=0;i<this->cards.size();i++){
+				if(index_of(this->cards[i])>index_of(other.cards[i])){
+					return true;
+				}if(index_of(this->cards[i])<index_of(other.cards[i])){
+					return false;
+				}
+			}
 		}
-	}
 		return false;
     }
 
 	 // Overload the << operator
     friend ostream& operator<<(std::ostream& os, const Hand& p) {
-        os << p.cards + " " + to_string(p.bet) + " has value:" + to_string(p.hand_value);
+        os << p.cards + " " + to_string(p.bet) + " has value:" + to_string(p.hand_value)<< endl;
         return os; // Return the ostream object to enable chaining
     }
 };
 
-char cards[] = {'A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4','3','2'};
 
 vector<string> split(const string& s, char delimiter) {
     vector<string> tokens;
@@ -91,20 +102,16 @@ vector<string> split(const string& s, char delimiter) {
 }
 
 void get_hand_rank(Hand* hand){
-	int card_numbers[sizeof(cards)/sizeof(char)] = {} ; // we get list of zeros
-	int max=0;
+	hand->hand_value = 0;
+	int card_numbers[number_of_possible_cards] = {} ; // we get list of zeros
 	for(int i=0;i<hand->cards.size();i++){
-		int index_of_current_character = index_of(cards,hand->cards[i]);
+		int index_of_current_character = index_of(hand->cards[i]);
 		card_numbers[index_of_current_character]++;
-		//cout<<"found "<<hand->cards[i]<<" at "<< index_of_current_character<<endl;
-		if(card_numbers[index_of_current_character]>max){
-			max = card_numbers[index_of_current_character];
-			//printArr(card_numbers,sizeof(card_numbers)/sizeof(int));
-	
-		}
 	}
 	//cout<<max<<" ";
-	hand->hand_value = max;
+	for(int i=0;i<number_of_possible_cards;i++){
+		hand->hand_value += card_numbers[i]*card_numbers[i];
+	}
 }
 
 Hand interpret_line(const string& input) {
@@ -117,29 +124,16 @@ Hand interpret_line(const string& input) {
     return hand;
 }
 
-bool greater(Hand hand_1,Hand hand_2){
-	if(hand_1.hand_value > hand_2.hand_value)
-		return true;
-	if(hand_2.hand_value > hand_1.hand_value)
-		return false;
-	for(int i=0;i<hand_1.cards.size();i++){
-		if(index_of(cards,hand_1.cards[i])>index_of(cards,hand_2.cards[i])){
-			return true;
-		}
-	}
-	return false;
-}
-
 void quickSort(vector<Hand>& arr, int left, int right) {
     int i = left, j = right;
     Hand tmp;
-    int pivot = arr[(left + right) / 2].hand_value;
+    Hand pivot = arr[(left + right) / 2];
 
     /* Partition */
     while (i <= j) {
-        while (arr[i].hand_value < pivot)
+        while (arr[i] < pivot)
             i++;
-        while (arr[j].hand_value > pivot)
+        while (arr[j] > pivot)
             j--;
         if (i <= j) {
             tmp = arr[i];
@@ -168,7 +162,7 @@ int result =0;
 			int factor = 1;
         	while (getline(file, line)) {
 				hands.push_back(interpret_line(line));
-				cout<<hands[index].print()<<endl;
+				//cout<<hands[index].print()<<endl;
 				index++;
 			}
 			file.close();
@@ -177,9 +171,18 @@ int result =0;
         	return 1;
     	}
 
-	printArr(hands,hands.size()-1);
+	//printArr(hands,hands.size());
+	
 	quickSort(hands,0,hands.size()-1);
-
-	printArr(hands,hands.size()-1);
+	
+	
+	//printArr(hands,hands.size());
+	
+	for(int i=0;i<hands.size();i++){
+		result+=hands[i].bet*(i+1);
+		//cout<<hands[i] << " * "<<i+1 << endl;
+	}
+	//printArr(hands,hands.size());
+	cout<<result;
 	return 0;
 }
